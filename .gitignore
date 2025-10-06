@@ -1,0 +1,24 @@
+# Terraform state
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+.terraform/
+.terraform/*
+
+# Sensitive variable files (keep secrets out of git)
+terraform.tfvars
+*.tfvars
+*.auto.tfvars
+
+# Terraform plan outputs
+*.tfplan
+plan.out
+
+# Local env files
+.env
+.env.*
+
+# OS junk
+.DS_Store
+Thumbs.db
