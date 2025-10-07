@@ -7,3 +7,8 @@ output "rt_ids" {
   value       = { for k, rt in aws_ec2_transit_gateway_route_table.rt : k => rt.id }
   description = "Map of TGW route table IDs (dev/prod/inspect/vpn)"
 }
+
+output "tgw_arn" {
+  description = "Transit Gateway ARN"
+  value       = aws_ec2_transit_gateway.this.arn
+}
