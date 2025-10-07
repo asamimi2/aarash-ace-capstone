@@ -1,4 +1,4 @@
-variable "dev_account_id"  { type = string }
+variable "dev_account_id" { type = string }
 variable "prod_account_id" { type = string }
 
 resource "aws_ram_resource_share" "tgw" {
