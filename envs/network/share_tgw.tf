@@ -18,5 +18,5 @@ resource "aws_ram_principal_association" "prod" {
 
 resource "aws_ram_resource_association" "tgw" {
   resource_share_arn = aws_ram_resource_share.tgw.arn
-  resource_arn       = module.tgw.tgw_arn   # make sure tgw_arn is an output
+  resource_arn       = module.tgw.tgw_arn
 }
