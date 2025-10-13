@@ -33,9 +33,20 @@ locals {
   private_subnet_ids = [for s in aws_subnet.private : s.id]
 }
 
+resource "aws_route_table" "public" {
+  vpc_id = aws_vpc.this.id
+  tags = { Name = "${var.name}-public-rt" }
+}
+
 resource "aws_route_table" "private" {
   vpc_id = aws_vpc.this.id
   tags   = { Name = "${var.name}-private-rt" }
+}
+
+resource "aws_route_table_association" "public" {
+  count          = length(aws_subnet.public)
+  subnet_id      = aws_subnet.public[count.index].id
+  route_table_id = aws_route_table.public.id
 }
 
 resource "aws_route_table_association" "private" {
