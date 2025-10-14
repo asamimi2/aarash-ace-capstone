@@ -3,6 +3,15 @@ data "terraform_remote_state" "network" {
   config  = { path = "../network/terraform.tfstate" }
 }
 
+data "aws_ami" "amazon_linux" {
+  most_recent = true
+  owners      = ["137112412989"] # Amazon
+  filter {
+    name   = "name"
+    values = ["al2023-ami-*-x86_64"]
+  }
+}
+
 module "vpc" {
   source                = "../../modules/vpc"
   name                  = "dev"
@@ -70,17 +79,28 @@ resource "aws_iam_instance_profile" "dev_ssm_profile" {
 
 # EC2 instance (private)
 resource "aws_instance" "dev_web" {
-  ami                    = "ami-0c7217cdde317cfec" # Amazon Linux 2
-  instance_type          = "t3.micro"
-  subnet_id              = module.vpc.private_subnet_ids[0]
-  vpc_security_group_ids = [aws_security_group.dev_web_sg.id]
-  iam_instance_profile   = aws_iam_instance_profile.dev_ssm_profile.name
-  user_data              = <<-EOF
-              #!/bin/bash
-              yum install -y httpd
-              systemctl start httpd
-              systemctl enable httpd
-              echo "Hello from DEV Web Server" > /var/www/html/index.html
-              EOF
-  tags                   = { Name = "dev-web" }
+  ami                         = data.aws_ami.amazon_linux.id
+  instance_type               = "t3.micro"
+  subnet_id                   = module.vpc.private_subnet_ids[0]
+  vpc_security_group_ids      = [aws_security_group.dev_web_sg.id]
+  iam_instance_profile        = aws_iam_instance_profile.dev_ssm_profile.name
+  associate_public_ip_address = false
+
+  user_data_replace_on_change = true
+  user_data = <<-EOF
+#!/bin/bash
+set -euxo pipefail
+PKG=dnf; command -v dnf >/dev/null 2>&1 || PKG=yum
+$PKG -y update || true
+$PKG -y install httpd
+systemctl enable --now httpd
+echo "Hello from DEV $(hostname -f)" > /var/www/html/index.html
+if ! rpm -q amazon-ssm-agent >/dev/null 2>&1; then
+  $PKG -y install amazon-ssm-agent || true
+fi
+systemctl enable --now amazon-ssm-agent || true
+ss -ltnp || true
+EOF
+
+  tags = { Name = "dev-web" }
 }
