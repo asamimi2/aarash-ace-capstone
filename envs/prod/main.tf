@@ -3,6 +3,15 @@ data "terraform_remote_state" "network" {
   config  = { path = "../network/terraform.tfstate" }
 }
 
+data "aws_ami" "amazon_linux" {
+  most_recent = true
+  owners      = ["137112412989"] # Amazon
+  filter {
+    name   = "name"
+    values = ["al2023-ami-*-x86_64"]
+  }
+}
+
 module "vpc" {
   source                = "../../modules/vpc"
   name                  = "prod"
@@ -45,13 +54,13 @@ resource "aws_security_group" "prod_web_sg" {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]     # public access
+    cidr_blocks = ["0.0.0.0/0"] # public access
   }
   ingress {
     from_port   = -1
     to_port     = -1
     protocol    = "icmp"
-    cidr_blocks = ["10.10.0.0/16"]  # allow ping from Dev
+    cidr_blocks = ["10.10.0.0/16"] # allow ping from Dev
   }
   egress {
     from_port   = 0
@@ -68,9 +77,9 @@ resource "aws_iam_role" "prod_ssm_role" {
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
-      Effect = "Allow"
+      Effect    = "Allow"
       Principal = { Service = "ec2.amazonaws.com" }
-      Action = "sts:AssumeRole"
+      Action    = "sts:AssumeRole"
     }]
   })
 }
@@ -85,18 +94,28 @@ resource "aws_iam_instance_profile" "prod_ssm_profile" {
 
 # EC2 instance (public)
 resource "aws_instance" "prod_web" {
-  ami                    = "ami-0c7217cdde317cfec"
-  instance_type          = "t3.micro"
-  subnet_id              = module.vpc.public_subnet_ids[0]
-  vpc_security_group_ids = [aws_security_group.prod_web_sg.id]
-  iam_instance_profile   = aws_iam_instance_profile.prod_ssm_profile.name
+  ami                         = data.aws_ami.amazon_linux.id
+  instance_type               = "t3.micro"
+  subnet_id                   = module.vpc.public_subnet_ids[0]
+  vpc_security_group_ids      = [aws_security_group.prod_web_sg.id]
+  iam_instance_profile        = aws_iam_instance_profile.prod_ssm_profile.name
   associate_public_ip_address = true
-  user_data = <<-EOF
-              #!/bin/bash
-              yum install -y httpd
-              systemctl start httpd
-              systemctl enable httpd
-              echo "Hello from PROD Web Server" > /var/www/html/index.html
-              EOF
+
+  user_data_replace_on_change = true
+  user_data                   = <<-EOF
+#!/bin/bash
+set -euxo pipefail
+PKG=dnf; command -v dnf >/dev/null 2>&1 || PKG=yum
+$PKG -y update || true
+$PKG -y install httpd
+systemctl enable --now httpd
+echo "Hello from PROD $(hostname -f)" > /var/www/html/index.html
+if ! rpm -q amazon-ssm-agent >/dev/null 2>&1; then
+  $PKG -y install amazon-ssm-agent || true
+fi
+systemctl enable --now amazon-ssm-agent || true
+ss -ltnp || true
+EOF
+
   tags = { Name = "prod-web" }
 }
