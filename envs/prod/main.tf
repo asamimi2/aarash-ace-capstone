@@ -50,24 +50,24 @@ resource "aws_route" "public_internet" {
 resource "aws_security_group" "prod_web_sg" {
   name   = "prod-web-sg"
   vpc_id = module.vpc.id
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # public access
-  }
+
+  # Keep ICMP from Dev if you still want ping tests
   ingress {
     from_port   = -1
     to_port     = -1
     protocol    = "icmp"
-    cidr_blocks = ["10.10.0.0/16"] # allow ping from Dev
+    cidr_blocks = ["10.10.0.0/16"] # Dev CIDR
   }
+
+  # No HTTP ingress block here; ALB-only access is granted by aws_security_group_rule.prod_instance_http_from_alb
+
   egress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
   tags = { Name = "prod-web-sg" }
 }
 
