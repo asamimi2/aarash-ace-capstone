@@ -19,15 +19,6 @@ resource "aws_security_group" "alb" {
   tags = { Name = "prod-alb-sg" }
 }
 
-resource "aws_security_group_rule" "prod_instance_http_from_alb" {
-  type                     = "ingress"
-  from_port                = 80
-  to_port                  = 80
-  protocol                 = "tcp"
-  security_group_id        = aws_security_group.prod_web_sg.id
-  source_security_group_id = aws_security_group.alb.id
-}
-
 resource "aws_lb" "web" {
   name               = "prod-web-alb"
   load_balancer_type = "application"
@@ -123,4 +114,9 @@ resource "aws_wafv2_web_acl" "web" {
       sampled_requests_enabled   = true
     }
   }
+}
+
+resource "aws_wafv2_web_acl_association" "alb_assoc" {
+  resource_arn = aws_lb.web.arn
+  web_acl_arn  = aws_wafv2_web_acl.web.arn
 }
