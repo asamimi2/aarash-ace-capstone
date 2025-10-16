@@ -51,15 +51,21 @@ resource "aws_security_group" "prod_web_sg" {
   name   = "prod-web-sg"
   vpc_id = module.vpc.id
 
-  # Keep ICMP from Dev if you still want ping tests
+  # HTTP from ALB
+  ingress {
+    from_port       = 80
+    to_port         = 80
+    protocol        = "tcp"
+    security_groups = [aws_security_group.alb.id]
+  }
+
+  # (optional) ping from Dev
   ingress {
     from_port   = -1
     to_port     = -1
     protocol    = "icmp"
-    cidr_blocks = ["10.10.0.0/16"] # Dev CIDR
+    cidr_blocks = ["10.10.0.0/16"]
   }
-
-  # No HTTP ingress block here; ALB-only access is granted by aws_security_group_rule.prod_instance_http_from_alb
 
   egress {
     from_port   = 0
