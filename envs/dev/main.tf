@@ -92,9 +92,24 @@ resource "aws_instance" "dev_web" {
   user_data                   = <<-EOF
 #!/bin/bash
 set -euxo pipefail
-# AL2 SSM agent should already be present & enabled; make sure it's running:
+
+# Put a simple page
+mkdir -p /var/www/html
+echo "Hello from DEV $(hostname -f)" > /var/www/html/index.html
+
+# Start a tiny web server on :80 without needing yum/dnf
+if command -v python3 >/dev/null 2>&1; then
+  nohup python3 -m http.server 80 --directory /var/www/html >/var/log/web.log 2>&1 &
+elif command -v busybox >/dev/null 2>&1; then
+  nohup busybox httpd -f -p 80 -h /var/www/html >/var/log/web.log 2>&1 &
+else
+  # If neither tool exists on your AMI, we can switch to an S3 endpoint approach.
+  echo "No python3 or busybox found; cannot start web server" >&2
+  exit 1
+fi
+
+# Make sure SSM agent is running (AL2 usually has it)
 systemctl enable --now amazon-ssm-agent || true
-echo "DEV instance bootstrapped (no Internet)."
 EOF
   tags = { Name = "dev-web" }
 }
