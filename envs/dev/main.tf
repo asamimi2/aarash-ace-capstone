@@ -96,6 +96,5 @@ set -euxo pipefail
 systemctl enable --now amazon-ssm-agent || true
 echo "DEV instance bootstrapped (no Internet)."
 EOF
-
   tags = { Name = "dev-web" }
 }
