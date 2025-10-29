@@ -15,3 +15,7 @@ output "prod_instance_id" {
 output "prod_alb_dns" {
   value = aws_lb.web.dns_name
 }
+
+output "vpc_id" {
+  value = module.vpc.id
+}
