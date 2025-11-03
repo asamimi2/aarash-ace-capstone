@@ -1,3 +1,12 @@
+data "terraform_remote_state" "prod" {
+  backend = "local"
+  config  = { path = "../prod/terraform.tfstate" }
+}
+data "terraform_remote_state" "dev" {
+  backend = "local"
+  config  = { path = "../dev/terraform.tfstate" }
+}
+
 # (If you already have the dns-anchor VPC, reuse it and delete this block)
 resource "aws_vpc" "dns_anchor" {
   cidr_block           = "10.253.0.0/24"
@@ -8,19 +17,9 @@ resource "aws_vpc" "dns_anchor" {
 
 # Create the Private Hosted Zone in Shared and attach it to the anchor VPC
 resource "aws_route53_zone" "internal" {
-  name = "internal.example.com"          # <-- change to your internal domain
+  name = "internal.capstone.com"          # <-- change to your internal domain
   vpc  { vpc_id = aws_vpc.dns_anchor.id }  # first association must be in the zone's account
   comment = "Central PHZ in Shared"
-}
-
-# Read Dev/Prod VPC IDs from their states
-data "terraform_remote_state" "dev" {
-  backend = "local"
-  config  = { path = "../dev/terraform.tfstate" }
-}
-data "terraform_remote_state" "prod" {
-  backend = "local"
-  config  = { path = "../prod/terraform.tfstate" }
 }
 
 # Authorize Dev and Prod VPCs to associate
