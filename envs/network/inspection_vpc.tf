@@ -31,8 +31,3 @@ resource "aws_ec2_transit_gateway_vpc_attachment" "inspect" {
   appliance_mode_support = "enable"
   tags                   = { Name = "tgw-attach-inspection" }
 }
-
-resource "aws_ec2_transit_gateway_route_table_association" "assoc_inspect" {
-  transit_gateway_attachment_id  = aws_ec2_transit_gateway_vpc_attachment.inspect.id
-  transit_gateway_route_table_id = module.tgw.rt_ids["inspect"]
-}

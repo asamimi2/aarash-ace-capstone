@@ -20,7 +20,7 @@ resource "aws_route_table_association" "tgw_assoc" {
 }
 
 resource "aws_route" "tgw_to_nfw_default" {
-  for_each               = toset(var.azs)  # e.g., ["us-east-1a","us-east-1b"]
+  for_each               = toset(var.azs) # e.g., ["us-east-1a","us-east-1b"]
   route_table_id         = aws_route_table.tgw_rt[each.key].id
   destination_cidr_block = "0.0.0.0/0"
   vpc_endpoint_id        = local.nfw_endpoints_by_az[each.key]

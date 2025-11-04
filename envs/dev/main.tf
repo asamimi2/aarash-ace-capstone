@@ -111,5 +111,5 @@ fi
 # Make sure SSM agent is running (AL2 usually has it)
 systemctl enable --now amazon-ssm-agent || true
 EOF
-  tags = { Name = "dev-web" }
+  tags                        = { Name = "dev-web" }
 }

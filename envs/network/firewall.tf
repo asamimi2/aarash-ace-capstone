@@ -2,19 +2,19 @@ resource "aws_networkfirewall_rule_group" "stateful_ip_allow" {
   capacity = 100
   name     = "nfw-allow-cidrs"
   type     = "STATEFUL"
+
   rule_group {
     rules_source {
       rules_string = <<-EOT
-      pass ip ${var.dev_cidr}  any -> ${var.prod_cidr} any (sid:1001;)
-      pass ip ${var.prod_cidr} any -> ${var.dev_cidr}  any (sid:1002;)
-      pass ip ${var.dev_cidr}  any -> ${var.home_cidr} any (sid:1003;)
-      pass ip ${var.home_cidr} any -> ${var.dev_cidr}  any (sid:1004;)
-      pass ip ${var.prod_cidr} any -> ${var.home_cidr} any (sid:1005;)
-      pass ip ${var.home_cidr} any -> ${var.prod_cidr} any (sid:1006;)
-      drop ip any any -> any any (sid:2000; msg:"Default drop";)
+        pass ip ${var.dev_cidr} any -> 192.168.69.0/24 any (sid:1101;)
+        pass ip 192.168.69.0/24 any -> ${var.dev_cidr} any (sid:1102;)
+        pass ip ${var.dev_cidr} any -> ${var.prod_cidr} any (sid:1201;)
+        pass ip ${var.prod_cidr} any -> ${var.dev_cidr} any (sid:1202;)
+        drop ip any any -> any any (sid:2000; msg:"Default drop";)
       EOT
     }
   }
+
   tags = { Name = "nfw-allow-cidrs" }
 }
 
