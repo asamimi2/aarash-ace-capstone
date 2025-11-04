@@ -1,0 +1,11 @@
+# Allow DEV to be learned inside INSPECT RT
+resource "aws_ec2_transit_gateway_route_table_propagation" "dev_to_inspect" {
+  transit_gateway_route_table_id = module.tgw.rt_ids["inspect"]
+  transit_gateway_attachment_id  = aws_ec2_transit_gateway_vpc_attachment_accepter.dev.id
+}
+
+# Allow PROD to be learned inside INSPECT RT
+resource "aws_ec2_transit_gateway_route_table_propagation" "prod_to_inspect" {
+  transit_gateway_route_table_id = module.tgw.rt_ids["inspect"]
+  transit_gateway_attachment_id  = aws_ec2_transit_gateway_vpc_attachment_accepter.prod.id
+}

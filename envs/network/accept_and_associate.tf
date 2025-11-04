@@ -12,10 +12,14 @@ data "terraform_remote_state" "prod" {
 # Accept the cross-account attachments (TGW owner = Network account)
 resource "aws_ec2_transit_gateway_vpc_attachment_accepter" "dev" {
   transit_gateway_attachment_id = data.terraform_remote_state.dev.outputs.dev_attachment_id
+  transit_gateway_default_route_table_association = false
+  transit_gateway_default_route_table_propagation = false
 }
 
 resource "aws_ec2_transit_gateway_vpc_attachment_accepter" "prod" {
   transit_gateway_attachment_id = data.terraform_remote_state.prod.outputs.prod_attachment_id
+  transit_gateway_default_route_table_association = false
+  transit_gateway_default_route_table_propagation = false
 }
 
 # Associate each attachment to its dedicated TGW route table

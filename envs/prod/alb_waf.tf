@@ -124,7 +124,7 @@ resource "aws_wafv2_web_acl_association" "alb_assoc" {
 resource "aws_cloudwatch_log_group" "waf" {
   name              = "aws-waf-logs-prod-web-waf"
   retention_in_days = 30
-  tags = { App = "prod-web" }
+  tags              = { App = "prod-web" }
 }
 
 resource "aws_wafv2_web_acl_logging_configuration" "waf_to_cwl" {

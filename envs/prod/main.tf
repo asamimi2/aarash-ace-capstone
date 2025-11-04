@@ -24,7 +24,7 @@ module "attach" {
   vpc_id         = module.vpc.id
   subnet_ids     = module.vpc.tgw_subnet_ids
   tgw_id         = data.terraform_remote_state.network.outputs.tgw_id
-  appliance_mode = true
+  appliance_mode = false
 }
 
 output "prod_attachment_id" {
@@ -65,6 +65,13 @@ resource "aws_security_group" "prod_web_sg" {
     to_port     = -1
     protocol    = "icmp"
     cidr_blocks = ["10.10.0.0/16"]
+  }
+
+  ingress {
+    protocol    = "tcp"
+    from_port   = 80
+    to_port     = 80
+    cidr_blocks = ["10.10.0.0/16"] # Dev VPC
   }
 
   # Outbound for SSM (simple: allow all; or lock down to 443 only)

@@ -23,12 +23,12 @@ resource "aws_ec2_transit_gateway_route_table_association" "assoc_vpn" {
 }
 
 # If using BGP (recommended): propagate routes between VPN and Dev
-resource "aws_ec2_transit_gateway_route_table_propagation" "vpn_to_dev" {
-  transit_gateway_route_table_id = module.tgw.rt_ids["dev"]
-  transit_gateway_attachment_id  = aws_vpn_connection.home.transit_gateway_attachment_id
-}
+# resource "aws_ec2_transit_gateway_route_table_propagation" "vpn_to_dev" {
+#   transit_gateway_route_table_id = module.tgw.rt_ids["dev"]
+#   transit_gateway_attachment_id  = aws_vpn_connection.home.transit_gateway_attachment_id
+# }
 
-resource "aws_ec2_transit_gateway_route_table_propagation" "dev_to_vpn" {
-  transit_gateway_route_table_id = module.tgw.rt_ids["vpn"]
-  transit_gateway_attachment_id  = aws_ec2_transit_gateway_vpc_attachment_accepter.dev.id
-}
+# resource "aws_ec2_transit_gateway_route_table_propagation" "dev_to_vpn" {
+#   transit_gateway_route_table_id = module.tgw.rt_ids["vpn"]
+#   transit_gateway_attachment_id  = aws_ec2_transit_gateway_vpc_attachment_accepter.dev.id
+# }

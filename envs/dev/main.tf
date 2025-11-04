@@ -24,7 +24,7 @@ module "attach" {
   vpc_id         = module.vpc.id
   subnet_ids     = module.vpc.tgw_subnet_ids
   tgw_id         = data.terraform_remote_state.network.outputs.tgw_id
-  appliance_mode = true
+  appliance_mode = false
 }
 
 output "dev_attachment_id" {
