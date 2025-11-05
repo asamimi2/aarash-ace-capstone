@@ -47,6 +47,20 @@ resource "aws_security_group" "dev_web_sg" {
     protocol    = "icmp"
     cidr_blocks = ["10.20.0.0/16"]
   }
+  ingress {
+    protocol    = "icmp"
+    from_port   = -1
+    to_port     = -1
+    cidr_blocks = ["192.168.69.0/24"]
+  }
+
+  # (Optional) HTTP test from customer LAN
+  ingress {
+    protocol    = "tcp"
+    from_port   = 80
+    to_port     = 80
+    cidr_blocks = ["192.168.69.0/24"]
+  }
   egress {
     from_port   = 0
     to_port     = 0
