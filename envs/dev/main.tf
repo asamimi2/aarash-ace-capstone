@@ -24,7 +24,7 @@ module "attach" {
   vpc_id         = module.vpc.id
   subnet_ids     = module.vpc.tgw_subnet_ids
   tgw_id         = data.terraform_remote_state.network.outputs.tgw_id
-  appliance_mode = true
+  appliance_mode = false
 }
 
 output "dev_attachment_id" {
@@ -46,6 +46,20 @@ resource "aws_security_group" "dev_web_sg" {
     to_port     = -1
     protocol    = "icmp"
     cidr_blocks = ["10.20.0.0/16"]
+  }
+  ingress {
+    protocol    = "icmp"
+    from_port   = -1
+    to_port     = -1
+    cidr_blocks = ["192.168.69.0/24"]
+  }
+
+  # (Optional) HTTP test from customer LAN
+  ingress {
+    protocol    = "tcp"
+    from_port   = 80
+    to_port     = 80
+    cidr_blocks = ["192.168.69.0/24"]
   }
   egress {
     from_port   = 0
@@ -92,10 +106,24 @@ resource "aws_instance" "dev_web" {
   user_data                   = <<-EOF
 #!/bin/bash
 set -euxo pipefail
-# AL2 SSM agent should already be present & enabled; make sure it's running:
-systemctl enable --now amazon-ssm-agent || true
-echo "DEV instance bootstrapped (no Internet)."
-EOF
 
-  tags = { Name = "dev-web" }
+# Put a simple page
+mkdir -p /var/www/html
+echo "Hello from DEV $(hostname -f)" > /var/www/html/index.html
+
+# Start a tiny web server on :80 without needing yum/dnf
+if command -v python3 >/dev/null 2>&1; then
+  nohup python3 -m http.server 80 --directory /var/www/html >/var/log/web.log 2>&1 &
+elif command -v busybox >/dev/null 2>&1; then
+  nohup busybox httpd -f -p 80 -h /var/www/html >/var/log/web.log 2>&1 &
+else
+  # If neither tool exists on your AMI, we can switch to an S3 endpoint approach.
+  echo "No python3 or busybox found; cannot start web server" >&2
+  exit 1
+fi
+
+# Make sure SSM agent is running (AL2 usually has it)
+systemctl enable --now amazon-ssm-agent || true
+EOF
+  tags                        = { Name = "dev-web" }
 }
