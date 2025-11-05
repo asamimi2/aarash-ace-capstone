@@ -120,3 +120,18 @@ resource "aws_wafv2_web_acl_association" "alb_assoc" {
   resource_arn = aws_lb.web.arn
   web_acl_arn  = aws_wafv2_web_acl.web.arn
 }
+
+resource "aws_cloudwatch_log_group" "waf" {
+  name              = "aws-waf-logs-prod-web-waf"
+  retention_in_days = 30
+  tags              = { App = "prod-web" }
+}
+
+resource "aws_wafv2_web_acl_logging_configuration" "waf_to_cwl" {
+  resource_arn            = aws_wafv2_web_acl.web.arn
+  log_destination_configs = [aws_cloudwatch_log_group.waf.arn]
+
+  redacted_fields {
+    single_header { name = "authorization" }
+  }
+}
