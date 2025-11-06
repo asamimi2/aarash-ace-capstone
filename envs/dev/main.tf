@@ -36,12 +36,6 @@ resource "aws_security_group" "dev_web_sg" {
   name   = "dev-web-sg"
   vpc_id = module.vpc.id
   ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["10.20.0.0/16"] # allow only from Prod CIDR
-  }
-  ingress {
     from_port   = -1
     to_port     = -1
     protocol    = "icmp"
@@ -53,13 +47,11 @@ resource "aws_security_group" "dev_web_sg" {
     to_port     = -1
     cidr_blocks = ["192.168.69.0/24"]
   }
-
-  # (Optional) HTTP test from customer LAN
   ingress {
-    protocol    = "tcp"
-    from_port   = 80
-    to_port     = 80
-    cidr_blocks = ["192.168.69.0/24"]
+    protocol        = "tcp"
+    from_port       = 80
+    to_port         = 80
+    security_groups = [aws_security_group.dev_alb.id] # only ALB can reach the instance on :80
   }
   egress {
     from_port   = 0
