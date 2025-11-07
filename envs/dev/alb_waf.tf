@@ -7,7 +7,7 @@ resource "aws_security_group" "dev_alb" {
     protocol    = "tcp"
     from_port   = 80
     to_port     = 80
-    cidr_blocks = ["10.20.0.0/16", "192.168.69.0/24", "10.10.0.0/16"]
+    cidr_blocks = ["10.20.0.0/16", "192.168.69.0/24", "10.10.0.0/16", "66.25.103.244/32"]
   }
 
   egress {

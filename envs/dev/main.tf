@@ -35,30 +35,38 @@ output "dev_attachment_id" {
 resource "aws_security_group" "dev_web_sg" {
   name   = "dev-web-sg"
   vpc_id = module.vpc.id
-  ingress {
-    from_port   = -1
-    to_port     = -1
-    protocol    = "icmp"
-    cidr_blocks = ["10.20.0.0/16"]
-  }
+
+  # ICMP from Prod + Customer (optional, for ping)
   ingress {
     protocol    = "icmp"
     from_port   = -1
     to_port     = -1
-    cidr_blocks = ["192.168.69.0/24"]
+    cidr_blocks = ["10.20.0.0/16", "192.168.69.0/24"]
   }
+
+  # HTTP from the DEV ALB (SG-to-SG reference)
   ingress {
     protocol        = "tcp"
     from_port       = 80
     to_port         = 80
-    security_groups = [aws_security_group.dev_alb.id] # only ALB can reach the instance on :80
+    security_groups = [aws_security_group.dev_alb.id]
   }
+
+  # TEMP: direct HTTP from Customer LAN (bypass ALB to test the instance)
+  ingress {
+    protocol    = "tcp"
+    from_port   = 80
+    to_port     = 80
+    cidr_blocks = ["192.168.69.0/24"]
+  }
+
   egress {
+    protocol    = "-1"
     from_port   = 0
     to_port     = 0
-    protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
   tags = { Name = "dev-web-sg" }
 }
 

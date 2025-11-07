@@ -7,4 +7,5 @@ data "terraform_remote_state" "shared" {
 resource "aws_route53_zone_association" "prod_assoc" {
   zone_id = data.terraform_remote_state.shared.outputs.shared_internal_zone_id
   vpc_id  = module.vpc.id
+  vpc_region = "us-east-1"
 }
